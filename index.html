@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Todo App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- 할 일 관리 섹션 -->
+    <div class="todo-container">
+        <h1>Todo List</h1>
+        <input type="text" id="new-task" placeholder="Add a new task...">
+        <input type="date" id="task-date">
+        <select id="task-priority">
+            <option value="P1">P1 (High Priority)</option>
+            <option value="P2">P2 (Low Priority)</option>
+        </select>
+        <button id="add-task-btn">Add Task</button>
+
+        <div>
+            <button id="view-daily-tasks">View Today's Tasks</button>
+            <button id="view-weekly-tasks">View This Week's Tasks</button>
+        </div>
+
+        <ul id="task-list"></ul>
+    </div>
+
+    <!-- 전체, 완료된 할 일 보기 섹션 -->
+    <div>
+        <button id="view-all-tasks">View All Tasks</button>
+        <button id="view-completed-tasks">View Completed Tasks</button>
+    </div>
+
+    <!-- Google OAuth 로그인 섹션 -->
+    <div id="auth-container">
+        <button id="login-btn">Login with Gmail</button>
+        <button id="logout-btn" style="display:none">Logout</button>
+        <p id="user-info"></p>
+    </div>
+
+    <!-- 외부 스크립트 -->
+    <script src="app.js"></script> <!-- 할 일 관리 기능 관련 스크립트 -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jwt-decode/3.1.2/jwt-decode.min.js"></script>
+
+    <!-- Google OAuth 로그인 처리 및 할 일 관리 로직 -->
+    <script>
+        const clientId = 'YOUR_GOOGLE_CLIENT_ID';  // Google Cloud Console에서 발급받은 클라이언트 ID
+
+        window.onload = function() {
+            // Google OAuth 초기화
+            google.accounts.id.initialize({
+                client_id: clientId,
+                callback: handleCredentialResponse
+            });
+
+            // 로그인 버튼 렌더링
+            google.accounts.id.renderButton(
+                document.getElementById("login-btn"),
+                { theme: "outline", size: "large" }
+            );
+
+            google.accounts.id.prompt();  // 자동 로그인 요청
+
+            // 할 일 관련 로직 및 이벤트 리스너는 여기서 호출 가능
+            setupTodoApp();  // app.js에 정의된 함수로 할 일 관련 로직 설정
+        }
+
+        function handleCredentialResponse(response) {
+            const data = jwt_decode(response.credential);
+            document.getElementById('user-info').innerText = `Logged in as ${data.email}`;
+            document.getElementById('login-btn').style.display = 'none';
+            document.getElementById('logout-btn').style.display = 'inline-block';
+        }
+
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            google.accounts.id.disableAutoSelect();
+            document.getElementById('user-info').innerText = '';
+            document.getElementById('login-btn').style.display = 'inline-block';
+            document.getElementById('logout-btn').style.display = 'none';
+        });
+    </script>
+</body>
+</html>
